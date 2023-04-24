@@ -1,0 +1,211 @@
+// code dump upto lecture 63
+// mounting and refactoring routes and files
+
+
+----------------------------------------------
+const express = require('express');
+const fs = require('fs');
+const morgan = require('morgan');
+
+const app = express();
+// 1. middlewares
+
+app.use(morgan('dev'));
+app.use(express.json());
+
+app.use((request, response, next) => {
+  console.log('Hello from Middleware👋🏻');
+  next();
+});
+
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString();
+  next();
+});
+
+//-------------------------------------------
+// tours -
+// read the data -
+const toursData = JSON.parse(
+  fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
+);
+
+// 2. route handlers
+// Group all the callback functions together --
+const getAllTours = (request, response) => {
+  //console.log(request.requestTime);
+  response.status(200).json({
+    status: 'success',
+    requestedAt: request.requestTime,
+    results: toursData.length,
+    data: {
+      tours: toursData,
+    },
+  });
+};
+
+const getTourById = (request, response) => {
+  console.log(request.params);
+
+  const id = Number(request.params.id);
+  const tour = toursData.find((element) => element.id === id);
+  // solution 1 - if id > length of actual data array
+  // (focus on if else logic)
+  // if (id > toursData.length) {return response.status(404).json({
+  //     status: 'fail',
+  //     message: 'Invalid ID',
+  //   });}
+
+  // solution 2 - if tour is undefined
+  if (!tour) {
+    // using return as we donot want to proceed after that
+    return response.status(404).json({
+      status: 'fail',
+      message: 'Invalid ID',
+    });
+  }
+  response.status(200).json({
+    status: 'success',
+    data: {
+      tour: tour,
+    },
+  });
+};
+
+const createTour = (request, response) => {
+  // new id = get last tour id from imported data and add 1 to get the new id
+  const newID = toursData[toursData.length - 1].id + 1;
+
+  // creating new tour
+  const newTour = Object.assign({ id: newID }, request.body);
+
+  // update the tourData variable that we read
+  toursData.push(newTour);
+
+  // update the file containing the actual data
+  fs.writeFile(
+    `${__dirname}/dev-data/data/tours-simple.json`,
+    JSON.stringify(toursData),
+    (err) => {
+      response.status(201).json({
+        status: 'success',
+        data: {
+          tour: newTour,
+        },
+      });
+    }
+  );
+};
+
+const updateTour = (request, response) => {
+  if (Number(request.params.id) > toursData.length) {
+    return response.status(404).json({
+      status: 'fail',
+      message: 'Invalid ID',
+    });
+  }
+  response.status(200).json({
+    status: 'success',
+    data: {
+      tour: '<Updated tour>',
+    },
+  });
+};
+
+const deleteTour = (request, response) => {
+  if (Number(request.params.id) > toursData.length) {
+    return response.status(404).json({
+      status: 'fail',
+      message: 'Invalid ID',
+    });
+  }
+  response.status(204).json({
+    status: 'success',
+    data: null,
+  });
+};
+//-----------------------------------------
+
+const getAllUsers = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'route is not yet defined',
+  });
+};
+
+const getUserById = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'route is not yet defined',
+  });
+};
+
+const createUser = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'route is not yet defined',
+  });
+};
+
+const updateUser = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'route is not yet defined',
+  });
+};
+
+const deleteUser = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'route is not yet defined',
+  });
+};
+
+//----------------------------------------
+
+// 3. routes
+// Group all the routes together -
+//app.get('/api/v1/tours', getAllTours);
+//app.post('/api/v1/tours', createTour);
+//app.get('/api/v1/tours/:id', getTourById);
+//app.patch('/api/v1/tours/:id', updateTour);
+//app.delete('/api/v1/tours/:id', deleteTour);
+
+// creating route with .route() method
+
+// app.route('/api/v1/tours').get(getAllTours).post(createTour);
+
+// app
+//   .route('/api/v1/tours/:id')
+//   .get(getTourById)
+//   .patch(updateTour)
+//   .delete(deleteTour);
+
+// app.route('/api/v1/users').get(getAllUsers).post(createUser);
+
+// app
+//   .route('/api/v1/users/:id')
+//   .get(getUserById)
+//   .patch(updateUser)
+//   .delete(deleteUser);
+
+// const tourRouter = express.Router();
+// const userRouter = express.Router();
+// // mounting router -> to a route
+// app.use('/api/v1/tours', tourRouter);
+// app.use('/api/v1/users', userRouter);
+
+// tourRouter.route('/').get(getAllTours).post(createTour);
+
+// tourRouter.route('/:id').get(getTourById).patch(updateTour).delete(deleteTour);
+
+// userRouter.route('/').get(getAllUsers).post(createUser);
+
+// userRouter.route('/:id').get(getUserById).patch(updateUser).delete(deleteUser);
+
+// 4. server
+// listen method -
+const port = 3000;
+app.listen(port, () => {
+  console.log('Server running on port 3000');
+});

@@ -1,0 +1,169 @@
+Express - 
+
+First steps - 
+1. npm init
+2. npm i Express
+3. require Express
+
+
+# In this COurse we will be working on web API
+
+REST architechture - 
+Representational state transfer 
+
+principles should be followed when designing REST API - 
+
+1. separate API into logical resources.
+    - logical resources : any information that we can share and can be named. and has data associated with it.
+    eg - tours, users, reviews, comments 
+    
+2. resources Exposed(made available) using structured resource-based URLs
+    - exposing resources means: creating api end point
+    
+    'https://www.natours.com/addNewTour' => url
+    and
+    "/addNewTour" => is api end point
+    /getTour, /updateTour 
+    
+3. api should use right HTTP methods (not urls)
+    => But exposing api end points like in the above example will very difficult to manage and it does not follow REST architechture
+    
+    => In REST architechture api should contain only noun and use HTTP method for actions
+    
+    eg - 
+        /addNewTour => POST /tours  => Create   => no id should be send 
+        /getTour    => GET /tours/9   => Read
+        /updateTour => PUT /tours/9   => Update
+                    => PATCH /tours/9 => Update
+        /deleteTour => DELETE /tours/9=> Delete
+        
+        # endpoint names are exact same
+        # difference is HTTP methods we are using.
+        
+        # other actions like - 
+        /getToursByUser => GET /users/3/tours
+        /deleteTourByUser => DELETE /users/3/tours/9
+4. send data as JSON
+
+    JSON ---- RESPONSE FORMATTING USING JSEND-----> DATA
+    # enveloping
+5. they must be stateless
+    
+    stateless -> 
+        - For a certain request all state should be handled by the client.
+        - Server should not have to remember previous requests to process the current request.
+        
+        State is data that changes overtime.
+        
+        eg - user is logged in, currentPage
+        
+        
+--------------------------------------------
+
+app.use() -> to use middleware
+middleware (stands between)- function that can modify incoming request data
+
+# app.js line 6 - 
+data from the body get added to request object using this middleware
+
+# In json every thing should be in double quotes.
+
+
+------------------------------------------
+Responding to url parameter - 
+
+Here we will implement get data using tour id pass as parameter.
+eg - localhost:3000/tours/9
+
+> To pass a URL parameter as in example - 
+    we write "/api/v1/tours/:id"
+    
+    :id - is the parameter
+    if we write :id? => it means that id paramter is optional
+    
+> the parameter data is fetched using "request.params"
+
+> data is stored as object with key = paramter name and value = value passed in url (mostly string)
+
+> .find() method 
+---------------------------------
+Handling POST requests - 
+
+status code - 201 => means created 
+
+----------------------------------------
+Handling PATCH requests - 
+
+patch - update the properties that have been updated
+
+---------------------------
+
+Handling Delete request - 
+
+status code - 204 means no content
+
+we send data : null => denotes that data we deleted no longer exist
+
+---------------------------------
+
+Reorganize the routes - 
+
+1. group all callback function (route handler functions) together and assign them a name.
+
+2. group all routes together so that they are easy to read.
+
+// creating middleware - 
+
+middleware functions normally are applied to every single request.
+
+route handlers functions are also middleware but they are called for specific routes or url.
+
+# Order of the middleware matters in express.
+
+eg - see illustration saved in folder
+
+# 3rd party middleware
+--------------------------------------------------
+
+# Implementing 'users' resources - 
+
+---------------------------------------
+
+!! all code upto 63 stored in app-dump-1.txt
+
+
+# mainly app.js is used to declare and use middleware 
+
+app --> 
+
+--------------------------------------------
+param middleware - middleware that runs for certain parameters (eg - id parameter in this app)
+
+param middleware decalration (router)- 
+
+routerName.param('param1', (req, res, next, val)=>{
+    ...
+})
+
+'param1' - parameter for which this middleware will run
+
+req, res, next - request, response objects and next() function
+
+val - value of the paramter passed.
+
+---------------------------------------------
+chaining middleware - 
+> just write the middleware before the route-handler middleware of a http method
+> chaining is done so that all logic like validation and authorization does not happen in requesthandlers.
+
+router.post(middleware1, middleware2, route-handler function)
+
+here middleware1 and middleware2 is chained to post request.
+
+> eg- see in code tourRoutes where checkBody is chained to post request.
+
+---------------------------------------------
+serving static files- 
+
+> using built-in middleware express.static(path name to static files)
+------------------------------------
